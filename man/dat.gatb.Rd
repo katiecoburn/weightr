@@ -62,4 +62,3 @@ of job classification and validity generalization analysis to the General Aptitu
 Test Battery (U.S. Employment Service Test Research Rep. No. 45). Washington, DC.
 }
 \keyword{datasets}
-

@@ -1,11 +1,11 @@
-weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL) {
+weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL, p) {
 
   si <- sqrt(v)
   effect <- effect
   number <- length(effect)
   v <- v
-  p <- 1-pnorm(effect/sqrt(v))
-
+  p <- p
+  
   neglike1 <- function(pars) {
     vc = pars[1]
     beta = pars[2:(npred+2)]
@@ -48,7 +48,8 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
     d = sum(log(swbij))
     # (Uncomment if needed to see what's going wrong.)  print(pars)
     return(-a + b + c + d)
-  }
+    }
+  # }
 
   gradient1 <- function(pars) {
     vc = pars[1]
@@ -89,8 +90,12 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
 
     #results <- cbind(c("Parameters",output1$par[1], output1$par[2]),c("Standard Errors", sqrt(diag(solve(output1$hessian)))))
     #return(grid.table(results, gp=gpar(fontsize=20), rows=c("Variance Component", "Intercept"), cols=c("Estimate", "Standard Error")))
-    resultsb <- data.frame(results, row.names=c("Variance Component", "Intercept"))
-    colnames(resultsb) <- c("Parameters", "Standard Errors")
+#     resultsb <- data.frame(results, row.names=c("Variance Component", "Intercept"))
+#     colnames(resultsb) <- c("Parameters", "Standard Errors")
+    rowlabels <- c("Variance Component", "Intercept")
+    resultsb <- data.frame(rowlabels,results)
+    
+    colnames(resultsb) <- c("", "Parameters", "Standard Errors")
     return(resultsb)
 
   }
@@ -104,17 +109,30 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
     nsteps <- length(steps)
     pars <- c(mean(v)/4, mean(effect), rep(1,nsteps-1))
 
+#     wt <- rep(1,number)
+#     for(i in 1:number) {
+#       for(j in 2:nsteps) {
+#         if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+#       }
+#       if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+#     }
     wt <- rep(1,number)
     for(i in 1:number) {
+      if(p[i] <= steps[1]) wt[i] = 1
       for(j in 2:nsteps) {
-        if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+        if (steps[j-1] < p[i] && p[i] <= steps[j]) wt[i] = j
       }
-      if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+      if(  p[i] > steps[nsteps-1] ) wt[i] = nsteps
     }
 
+    
+    #### Remember you changed this! #######
     output2 <- optim(par=pars,fn=neglike2,
                      lower=c(0,rep(-Inf,1),rep(0.01,(nsteps-1))),
                      method="L-BFGS-B",hessian=TRUE)
+    
+    # output2 <- nlminb(start=pars, objective=neglike2, lower=c(0,rep(-Inf,1),rep(0.01,(nsteps-1))), hessian=TRUE)
+    # print(output2)
 
     if(output2$convergence == 1){
       print("Maximum iterations reached without convergence. Consider re-examining your model.")
@@ -141,9 +159,16 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
     for(i in 3:(nsteps + 1)){
       rowlabels[i] <- paste(c(steps[i - 2], "< p-values <", steps[i - 1], "weight"), collapse=" ")
     }
-    resultsb <- data.frame(results, row.names=c(rowlabels))
-    colnames(resultsb) <- c("Parameters", "Standard Errors")
-    #return(grid.table(results, gp=gpar(fontsize=20), rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
+#     resultsb <- data.frame(results, row.names=c(rowlabels))
+    resultsb <- data.frame(rowlabels,results)
+    
+    colnames(resultsb) <- c("", "Parameters", "Standard Errors")
+    # return(grid.table(results, gp=gpar(fontsize=20), rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
+    # return(grid.table(results, rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
+#     return(format(resultsb))
+    # print(resultsb)
+#     return(grid.table(resultsb, rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
+    # return(gvisTable(resultsb))
     return(resultsb)
   }
 
@@ -173,9 +198,13 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
     for(i in 3:(npred + 2)){
       rowlabels[i] <- prednames[i - 1]
     }
-    resultsb <- data.frame(results, row.names=c(rowlabels))
-    colnames(resultsb) <- c("Parameters", "Standard Errors")
+#     resultsb <- data.frame(results, row.names=c(rowlabels))
+#     colnames(resultsb) <- c("Parameters", "Standard Errors")
     #return(grid.table(results, gp=gpar(fontsize=20), rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
+    
+    resultsb <- data.frame(rowlabels,results)
+    
+    colnames(resultsb) <- c("", "Parameters", "Standard Errors")
     return(resultsb)
   }
 
@@ -185,12 +214,20 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
 
     nsteps <- length(steps)
     pars <- c(mean(v)/4,mean(effect),rep(0,npred), rep(1,nsteps-1))
+#     wt <- rep(1,number)
+#     for(i in 1:number) {
+#       for(j in 2:nsteps) {
+#         if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+#       }
+#       if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+#     }
     wt <- rep(1,number)
     for(i in 1:number) {
+      if(p[i] <= steps[1]) wt[i] = 1
       for(j in 2:nsteps) {
-        if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+        if (steps[j-1] < p[i] && p[i] <= steps[j]) wt[i] = j
       }
-      if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+      if(  p[i] > steps[nsteps-1] ) wt[i] = nsteps
     }
     output2 <- optim(par=pars,fn=neglike2,
                      lower=c(0,rep(-Inf,(npred+1)),rep(0.01,(nsteps-1))),
@@ -226,8 +263,11 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
     for(i in (3+npred):(length(output2$par))){
       rowlabels[i] <- paste(c(steps[i - (2 + npred)], "< p-values <", steps[i - (1 + npred)], "weight"), collapse=" ")
     }
-    resultsb <- data.frame(results, row.names=c(rowlabels))
-    colnames(resultsb) <- c("Parameters", "Standard Errors")
+#     resultsb <- data.frame(results, row.names=c(rowlabels))
+#     colnames(resultsb) <- c("Parameters", "Standard Errors")
+    resultsb <- data.frame(rowlabels,results)
+    
+    colnames(resultsb) <- c("", "Parameters", "Standard Errors")
    # return(grid.table(results, gp=gpar(fontsize=20), rows=c(rowlabels), cols=c("Estimate", "Standard Error")))
    return(resultsb)
 
@@ -236,13 +276,13 @@ weightfunction <- function(effect, v, npred, steps, XX, prednames, weights=NULL)
 
   }
 
-likelihoodfunct <- function(effect, v, npred, steps, XX) {
+likelihoodfunct <- function(effect, v, npred, steps, XX, p) {
 
   si <- sqrt(v)
   effect <- effect
   number <- length(effect)
   v <- v
-  p <- 1-pnorm(effect/sqrt(v))
+  p <- p
 
   neglike1 <- function(pars) {
     vc = pars[1]
@@ -311,12 +351,20 @@ likelihoodfunct <- function(effect, v, npred, steps, XX) {
     nsteps <- length(steps)
     pars <- c(mean(v)/4, mean(effect), rep(1,nsteps-1))
 
+#     wt <- rep(1,number)
+#     for(i in 1:number) {
+#       for(j in 2:nsteps) {
+#         if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+#       }
+#       if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+#     }
     wt <- rep(1,number)
     for(i in 1:number) {
+      if(p[i] <= steps[1]) wt[i] = 1
       for(j in 2:nsteps) {
-        if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+        if (steps[j-1] < p[i] && p[i] <= steps[j]) wt[i] = j
       }
-      if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+      if(  p[i] > steps[nsteps-1] ) wt[i] = nsteps
     }
 
     output2 <- optim(par=pars,fn=neglike2,
@@ -340,12 +388,20 @@ likelihoodfunct <- function(effect, v, npred, steps, XX) {
 
     nsteps <- length(steps)
     pars <- c(mean(v)/4,mean(effect),rep(0,npred), rep(1,nsteps-1))
+#     wt <- rep(1,number)
+#     for(i in 1:number) {
+#       for(j in 2:nsteps) {
+#         if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+#       }
+#       if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+#     }
     wt <- rep(1,number)
     for(i in 1:number) {
+      if(p[i] <= steps[1]) wt[i] = 1
       for(j in 2:nsteps) {
-        if (-si[i]*qnorm(steps[j]) <= effect[i] && effect[i] <= -si[i]*qnorm(steps[j-1])) wt[i] = j
+        if (steps[j-1] < p[i] && p[i] <= steps[j]) wt[i] = j
       }
-      if(  effect[i] <= -si[i]*qnorm(steps[nsteps-1])) wt[i] = nsteps
+      if(  p[i] > steps[nsteps-1] ) wt[i] = nsteps
     }
     output2 <- optim(par=pars,fn=neglike2,
                      lower=c(0,rep(-Inf,(npred+1)),rep(0.01,(nsteps-1))),
@@ -371,7 +427,11 @@ sampletable <- function(p, pvalues, steps){
   for(i in 2:nsteps){
     rowlabels[i] <- paste(c(steps[i - 1], "< p-values <", steps[i]), collapse=" ")
   }
-  resultsb <- data.frame(results, row.names=c(rowlabels))
-  colnames(resultsb) <- c("Number of Effects")
+#   resultsb <- data.frame(results, row.names=c(rowlabels))
+#   colnames(resultsb) <- c("Number of Effects")
+  
+  resultsb <- data.frame(rowlabels,results)
+  
+  colnames(resultsb) <- c("", "Number of Effects")
   return(resultsb)
 }

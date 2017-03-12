@@ -4,8 +4,8 @@
 \alias{weightfunct}
 \title{Estimate the Vevea and Hedges (1995) Weight-Function Model}
 \usage{
-weightfunct(effect, v, steps = c(0.05, 1), mods = NULL, weights = NULL,
-  fe = FALSE, table = FALSE)
+weightfunct(effect, v, steps = c(0.025, 1), mods = NULL, weights = NULL,
+  fe = FALSE, table = FALSE, pval = NULL)
 }
 \arguments{
 \item{effect}{a vector of meta-analytic effect sizes.}
@@ -21,30 +21,30 @@ weightfunct(effect, v, steps = c(0.05, 1), mods = NULL, weights = NULL,
 \item{fe}{defaults to \code{FALSE}. Indicates whether to estimate a fixed-effects model.}
 
 \item{table}{defaults to \code{FALSE}. Indicates whether to print a table of the p-value intervals specified and the number of effect sizes per interval.}
+
+\item{pval}{defaults to \code{NULL}. A vector containing observed p-values for the corresponding effect sizes. If not provided, p-values are calculated.}
 }
 \value{
-The function returns a list containing the following components: \code{unadj_est}, \code{unadj_se}, \code{adj_est}, \code{adj_se}, \code{z_unadj}, \code{z_adj}, \code{p_unadj}, \code{p_adj}, \code{ci.lb_unadj}, \code{ci.ub_unadj}, \code{ci.lb_adj}, and \code{ci.ub_adj}.
+The function returns a list containing the following components: \code{output_unadj}, \code{output_adj}, \code{steps}, \code{mods}, \code{weights}, \code{fe}, \code{table}, \code{effect}, \code{v}, \code{npred}, \code{nsteps}, \code{p}, \code{XX}, \code{removed}.
 
-For each component, the order of relevant parameters is as follows: variance component, mean or linear coefficients, and weights. (Note that if \code{weights}
+The results of the unadjusted and adjusted models are returned by selecting the first (\code{[[1]]}) and second (\code{[[2]]}) elements of the list, respectively. The parameters can be obtained by \code{[[1]]$par} or \code{[[2]]$par}. The order of parameters is as follows: variance component, mean or linear coefficients, and weights. (Note that if \code{weights}
 are specified using the Vevea and Woods (2005) model, no standard errors, p-values, z-values, or confidence intervals
 are provided for the adjusted model, as these are no longer meaningful. Also note that the variance component is not reported for fixed-effects models.)
 \describe{
    \item{\code{unadj_est}}{the unadjusted model estimates}
-   \item{\code{unadj_se}}{standard errors for unadjusted model estimates}
    \item{\code{adj_est}}{the adjusted model estimates}
-   \item{\code{adj_se}}{standard errors for adjusted model estimates}
-   \item{\code{z_unadj}}{z-statistics for the unadjusted model estimates}
-   \item{\code{z_adj}}{z-statistics for the adjusted model estimates}
-   \item{\code{p_unadj}}{p-values for the unadjusted model estimates}
-   \item{\code{p_adj}}{p-values for the adjusted model estimates}
-   \item{\code{ci.lb_unadj}}{lower bounds of the 95\% confidence intervals for the
-   unadjusted model estimates}
-   \item{\code{ci.ub_unadj}}{upper bounds of the 95\% confidence intervals for the
-   unadjusted model estimates}
-   \item{\code{ci.lb_adj}}{lower bounds of the 95\% confidence intervals for the
-   adjusted model estimates}
-   \item{\code{ci.ub_adj}}{upper bounds of the 95\% confidence intervals for the
-   adjusted model estimates}
+   \item{\code{steps}}{the specified p-value cutpoints}
+   \item{\code{mods}}{the linear model formula, if one is specified}
+   \item{\code{weights}}{the vector of weights for the Vevea and Woods (2005) model, if specified}
+   \item{\code{fe}}{indicates whether or not a fixed-effects model was estimated}
+   \item{\code{table}}{indicates whether a sample size table was produced}
+   \item{\code{effect}}{the vector of effect sizes}
+   \item{\code{v}}{the vector of sampling variances}
+   \item{\code{npred}}{the number of predictors included; 0 represents an intercept-only model}
+   \item{\code{nsteps}}{the number of p-value cutpoints}
+   \item{\code{p}}{a vector of p-values for the observed effect sizes}
+   \item{\code{XX}}{the model matrix; the first column of ones represents the intercept, and any other columns correspond to moderators}
+   \item{\code{removed}}{effect sizes with missing data are removed by listwise deletion; any removed are provided here. Defaults to \code{NULL}}
    }
 }
 \description{
@@ -149,4 +149,3 @@ Sensitivity analysis using a priori weight functions. Psychological Methods, 10(
 428-443.
 }
 \keyword{weightr}
-

@@ -17,4 +17,3 @@ shiny_weightr()
 }
 }
 \keyword{weightr}
-

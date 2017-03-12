@@ -47,4 +47,3 @@ Viechtbauer, W. (2010). Conducting meta-analysis in R with the metafor package.
 Journal of Statistical Software, 36(3), 1-48.
 }
 \keyword{datasets}
-
