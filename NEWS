@@ -1,26 +1,6 @@
-weightr v1.1.0 (Release date: 2017-03-06)
+weightr v1.1.1 (Release date: 2017-03-22)
 ==============
 
 Changes:
 
-* Warning/explanation added for cases where the variance component is close to zero (border condition).
-
-* Replaced "N/E" with "---" when the Vevea and Woods (2005) model is estimated, and added an explanation for this.
-
-* Added a density plot panel to the Shiny app that displays the adjusted and unadjusted densities, along with guidelines for the interpretation of the adjusted density.
-
-* Reframed the tables in the Shiny app to include row names (a package change resulted in their removal).
-
-* Added an interactive funnel plot option to the Shiny app, and added options for including contour lines and lines at the mean effect on this interactive plot.
-
-* Fixed a problem with the alignment of output where two extra columns appeared in some cases.
-
-* Added a listwise deletion procedure to handle missing data and a feature storing any data removed.
-
-* Fixed the problem with ampersands in the URLS featured in the Shiny app.
-
-* Changed the default p-value cutpoint from 0.05 to 0.025 (which actually corresponds to a two-tailed significance level of 0.05).
-
-* Changed the output storage -- used an S3 class rather than simply printing it.
-
-* Fixed a problem where, due to estimation problems, a likelihood value very close to zero was sometimes negative.
+* Fixed a significant problem with printing output.
