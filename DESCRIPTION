@@ -1,6 +1,6 @@
 Package: weightr
 Title: Estimating Weight-Function Models for Publication Bias
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
   person(c("Kathleen", "M."), "Coburn", email = "kcoburn@ucmerced.edu", role = c("aut", "cre")),
   person(c("Jack", "L."), "Vevea", email = "jvevea@ucmerced.edu", role = c("aut")))
